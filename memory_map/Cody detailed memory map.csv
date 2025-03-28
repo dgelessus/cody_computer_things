@@ -1,0 +1,260 @@
+hex addrs,,dec addrs,,size,,mapping by,name in BASIC source,description
+min,max,min,max,bytes,KiB,,,
+,,,,,,,,overall memory map – low detail
+0000,9eff,0,40703,40704,39.8,cody_computer.spin,,physical RAM
+9f00,9fff,40704,40959,256,0.3,cody_computer.spin,,VIA registers
+a000,dfff,40960,57343,16384,16.0,cody_computer.spin,,“hardware” and shared RAM in Propeller
+e000,ffff,57344,65535,8192,8.0,cody_computer.spin,,BASIC “ROM” in Propeller
+,,,,,,,,
+,,,,,,,,physical RAM – medium detail
+0000,00ff,0,255,256,0.3,65C02,,zero page
+0100,01ff,256,511,256,0.3,65C02,,stack page
+0200,64ff,512,25855,25344,24.8,BASIC,PROGMEM..<PROGEND,BASIC program memory (tokenized source code)
+6500,65ff,25856,26111,256,0.3,,,(unused)
+6600,9e39,26112,40505,14394,14.1,BASIC,DATAMEM,BASIC variables and other runtime data
+9e40,9eff,40512,40703,192,0.2,,,(unused)
+,,,,,,,,
+,,,,,,,,VIA registers – medium detail
+9f00,9f0f,40704,40719,16,0.0,VIA,VIA_BASE,VIA registers
+9f10,9fff,40720,40959,240,0.2,VIA,,(repeated mappings of VIA registers)
+,,,,,,,,
+,,,,,,,,“hardware” and shared RAM in Propeller – medium detail
+a000,cfff,40960,53247,12288,12.0,VID (cody_line.spin),,"shared RAM, usable by VID"
+d000,d0ff,53248,53503,256,0.3,"VID (cody_line.spin, cody_video.spin)",,VID registers
+d100,d3ff,53504,54271,768,0.8,,,(unused register space/RAM)
+d400,d41f,54272,54303,32,0.0,SID (cody_audio.spin),,SID registers
+d420,d47f,54304,54399,96,0.1,,,(unused register space/RAM)
+d480,d49f,54400,54431,32,0.0,UART 1 (cody_uart.spin),UART1_BASE,UART 1 registers
+d4a0,d4bf,54432,54463,32,0.0,UART 2 (cody_uart.spin),UART2_BASE,UART 2 registers
+d4c0,d7ff,54464,55295,832,0.8,,,(unused register space/RAM)
+d800,dfff,55296,57343,2048,2.0,VID (cody_line.spin),,"shared RAM, usable by VID"
+,,,,,,,,
+,,,,,,,,physical RAM – full detail
+0000,0000,0,0,1,0.0,BASIC,SYS_A,SYS call A register
+0001,0001,1,1,1,0.0,BASIC,SYS_X,SYS call X register
+0002,0002,2,2,1,0.0,BASIC,SYS_Y,SYS call Y register
+0003,0003,3,3,1,0.0,BASIC ISR,RUNMODE,run mode
+0004,0004,4,4,1,0.0,BASIC,IOMODE,IO mode
+0005,0005,5,5,1,0.0,BASIC,IOBAUD,IO baud rate
+0006,0007,6,7,2,0.0,BASIC ISR,JIFFIES,timer count
+0008,0009,8,9,2,0.0,ROM,ISRPTR,interrupt/break vector (redirected from ROM to allow changing at runtime)
+000a,000a,10,10,1,0.0,BASIC,STACKREG,65C02 stack position to restore when unwinding a BASIC error
+000b,000c,11,12,2,0.0,BASIC,RANDOML..=RANDOMH,RNG seed
+000d,000d,13,13,1,0.0,BASIC,TABPOS,tab position in current line
+000e,000e,14,14,1,0.0,BASIC,PROMPT,character to show for INPUT prompts
+000f,000f,15,15,1,0.0,BASIC,PROGOFF,offset in current BASIC program line
+0010,0015,16,21,6,0.0,BASIC ISR,KEYROW0..=KEYROW5,keyboard key pressed bits
+0016,0017,22,23,2,0.0,BASIC ISR,KEYROW6..=KEYROW7,joystick button pressed bits
+0018,0018,24,24,1,0.0,BASIC,KEYDEBO,keyboard code used for debouncing
+0019,0019,25,25,1,0.0,BASIC,KEYLAST,last keyboard code and modifiers
+001a,001a,26,26,1,0.0,BASIC,KEYLOCK,keyboard shift lock status
+001b,001b,27,27,1,0.0,BASIC,KEYMODS,keyboard modifiers only
+001c,001c,28,28,1,0.0,BASIC,KEYCODE,keyboard scan code and modifiers
+001d,001d,29,29,1,0.0,BASIC,EXPRSNUM,expression stack depth
+001e,001e,30,30,1,0.0,BASIC,GOSUBSNUM,GOSUB-RETURN stack depth
+001f,001f,31,31,1,0.0,BASIC,FORSNUM,FOR-NEXT stack depth
+0020,0021,32,33,2,0.0,BASIC,MEMSPTR,source pointer for memory-related utility routines
+0022,0023,34,35,2,0.0,BASIC,MEMDPTR,destination pointer for memory-related utility routines
+0024,0025,36,37,2,0.0,BASIC,MEMSIZE,size of memory for memory-related utility routines
+0026,0027,38,39,2,0.0,BASIC,LINENUM,line number for related utility routines
+0028,0029,40,41,2,0.0,BASIC,LINEPTR,line pointer for related utility routines
+002a,002b,42,43,2,0.0,BASIC,STOPPTR,stop pointer for LIST
+002c,002c,44,44,1,0.0,BASIC,DBUFLEN,data buffer length
+002d,002d,45,45,1,0.0,BASIC,IBUFLEN,input buffer length
+002e,002e,46,46,1,0.0,BASIC,OBUFLEN,output buffer length
+002f,002f,47,47,1,0.0,BASIC,TBUFLEN,token buffer length
+0030,0031,48,49,2,0.0,BASIC,NUMONE,first parameter for number operations
+0032,0033,50,51,2,0.0,BASIC,NUMTWO,second parameter for number operations
+0034,0036,52,54,3,0.0,BASIC,NUMANS,answer for number operations
+0037,0037,55,55,1,0.0,BASIC,CURATTR,cursor background attributes (for color memory)
+0038,0038,56,56,1,0.0,BASIC,CURCOL,cursor column
+0039,0039,57,57,1,0.0,BASIC,CURROW,cursor row
+003a,003b,58,59,2,0.0,BASIC,CURSCRPTR,cursor pointer into screen memory
+003c,003d,60,61,2,0.0,BASIC,CURCOLPTR,cursor pointer into color memory
+003e,003e,62,62,1,0.0,BASIC,SPIINP,SPI input byte
+003f,003f,63,63,1,0.0,BASIC,SPIOUT,SPI output byte
+0040,0041,64,65,2,0.0,BASIC,PROGPTR,pointer to currently executing program line
+0042,0043,66,67,2,0.0,BASIC,PROGNXT,pointer to next program line to execute
+0044,0045,68,69,2,0.0,BASIC,PROGTOP,pointer to top of program
+0046,0047,70,71,2,0.0,BASIC,UARTPTR,base pointer to current UART
+0048,0049,72,73,2,0.0,BASIC,DATAPTR,pointer to next line for DATA statements
+004a,004a,74,74,1,0.0,BASIC,DBUFPOS,index in data buffer for READ statements
+004b,004d,75,77,3,0.0,,,(unused zero page variables)
+004e,004e,78,78,1,0.0,BASIC,TOKENIZEL,tokenizer binary search L value
+004f,004f,79,79,1,0.0,BASIC,TOKENIZER,tokenizer binary search R value
+0050,005f,80,95,16,0.0,BASIC,EXPRS_L/EXPRS_H,expression stack
+0060,006f,96,111,16,0.0,BASIC,GOSUBS_L/GOSUBS_H,GOSUB-RETURN stack
+0070,007f,112,127,16,0.0,BASIC,FORLINE_L/FORLINE_H,FOR-NEXT line number stack
+0080,008f,128,143,16,0.0,BASIC,FORVARS_L/FORVARS_H,FOR-NEXT variable pointer stack
+0090,009f,144,159,16,0.0,BASIC,FORSTOP_L/FORSTOP_H,FOR-NEXT stop value stack
+00a0,00ff,160,255,96,0.1,,,(unused zero page variables)
+0100,01ff,256,511,256,0.3,65C02,,stack page
+0200,64ff,512,25855,25344,24.8,BASIC,PROGMEM..<PROGEND,tokenized BASIC program lines
+6500,65ff,25856,26111,256,0.3,,,(unused)
+6600,66ff,26112,26367,256,0.3,BASIC,ARRA,BASIC variable A
+6700,67ff,26368,26623,256,0.3,BASIC,ARRB,BASIC variable B
+6800,68ff,26624,26879,256,0.3,BASIC,ARRC,BASIC variable C
+6900,69ff,26880,27135,256,0.3,BASIC,ARRD,BASIC variable D
+6a00,6aff,27136,27391,256,0.3,BASIC,ARRE,BASIC variable E
+6b00,6bff,27392,27647,256,0.3,BASIC,ARRF,BASIC variable F
+6c00,6cff,27648,27903,256,0.3,BASIC,ARRG,BASIC variable G
+6d00,6dff,27904,28159,256,0.3,BASIC,ARRH,BASIC variable H
+6e00,6eff,28160,28415,256,0.3,BASIC,ARRI,BASIC variable I
+6f00,6fff,28416,28671,256,0.3,BASIC,ARRJ,BASIC variable J
+7000,70ff,28672,28927,256,0.3,BASIC,ARRK,BASIC variable K
+7100,71ff,28928,29183,256,0.3,BASIC,ARRL,BASIC variable L
+7200,72ff,29184,29439,256,0.3,BASIC,ARRM,BASIC variable M
+7300,73ff,29440,29695,256,0.3,BASIC,ARRN,BASIC variable N
+7400,74ff,29696,29951,256,0.3,BASIC,ARRO,BASIC variable O
+7500,75ff,29952,30207,256,0.3,BASIC,ARRP,BASIC variable P
+7600,76ff,30208,30463,256,0.3,BASIC,ARRQ,BASIC variable Q
+7700,77ff,30464,30719,256,0.3,BASIC,ARRR,BASIC variable R
+7800,78ff,30720,30975,256,0.3,BASIC,ARRS,BASIC variable S
+7900,79ff,30976,31231,256,0.3,BASIC,ARRT,BASIC variable T
+7a00,7aff,31232,31487,256,0.3,BASIC,ARRU,BASIC variable U
+7b00,7bff,31488,31743,256,0.3,BASIC,ARRV,BASIC variable V
+7c00,7cff,31744,31999,256,0.3,BASIC,ARRW,BASIC variable W
+7d00,7dff,32000,32255,256,0.3,BASIC,ARRX,BASIC variable X
+7e00,7eff,32256,32511,256,0.3,BASIC,ARRY,BASIC variable Y
+7f00,7fff,32512,32767,256,0.3,BASIC,ARRZ,BASIC variable Z
+8000,80ff,32768,33023,256,0.3,BASIC,STRA,BASIC variable A$
+8100,81ff,33024,33279,256,0.3,BASIC,STRB,BASIC variable B$
+8200,82ff,33280,33535,256,0.3,BASIC,STRC,BASIC variable C$
+8300,83ff,33536,33791,256,0.3,BASIC,STRD,BASIC variable D$
+8400,84ff,33792,34047,256,0.3,BASIC,STRE,BASIC variable E$
+8500,85ff,34048,34303,256,0.3,BASIC,STRF,BASIC variable F$
+8600,86ff,34304,34559,256,0.3,BASIC,STRG,BASIC variable G$
+8700,87ff,34560,34815,256,0.3,BASIC,STRH,BASIC variable H$
+8800,88ff,34816,35071,256,0.3,BASIC,STRI,BASIC variable I$
+8900,89ff,35072,35327,256,0.3,BASIC,STRJ,BASIC variable J$
+8a00,8aff,35328,35583,256,0.3,BASIC,STRK,BASIC variable K$
+8b00,8bff,35584,35839,256,0.3,BASIC,STRL,BASIC variable L$
+8c00,8cff,35840,36095,256,0.3,BASIC,STRM,BASIC variable M$
+8d00,8dff,36096,36351,256,0.3,BASIC,STRN,BASIC variable N$
+8e00,8eff,36352,36607,256,0.3,BASIC,STRO,BASIC variable O$
+8f00,8fff,36608,36863,256,0.3,BASIC,STRP,BASIC variable P$
+9000,90ff,36864,37119,256,0.3,BASIC,STRQ,BASIC variable Q$
+9100,91ff,37120,37375,256,0.3,BASIC,STRR,BASIC variable R$
+9200,92ff,37376,37631,256,0.3,BASIC,STRS,BASIC variable S$
+9300,93ff,37632,37887,256,0.3,BASIC,STRT,BASIC variable T$
+9400,94ff,37888,38143,256,0.3,BASIC,STRU,BASIC variable U$
+9500,95ff,38144,38399,256,0.3,BASIC,STRV,BASIC variable V$
+9600,96ff,38400,38655,256,0.3,BASIC,STRW,BASIC variable W$
+9700,97ff,38656,38911,256,0.3,BASIC,STRX,BASIC variable X$
+9800,98ff,38912,39167,256,0.3,BASIC,STRY,BASIC variable Y$
+9900,99ff,39168,39423,256,0.3,BASIC,STRZ,BASIC variable Z$
+9a00,9aff,39424,39679,256,0.3,BASIC,IBUF,input buffer for INPUT statements
+9b00,9bff,39680,39935,256,0.3,BASIC,OBUF,"output buffer for PRINT, IF, and LET statements"
+9c00,9cff,39936,40191,256,0.3,BASIC,TBUF,token buffer
+9d00,9e39,40192,40505,314,0.3,BASIC,DBUFL/DBUFH,data buffer for DATA and READ statements
+9e40,9eff,40512,40703,192,0.2,,,(unused)
+,,,,,,,,
+,,,,,,,,VIA registers – full detail
+9f00,9f00,40704,40704,1,0.0,VIA,VIA_IORB,IRB/ORB: input/output register B
+9f01,9f01,40705,40705,1,0.0,VIA,VIA_IORA,IRA/ORA: input/output register A
+9f02,9f02,40706,40706,1,0.0,VIA,VIA_DDRB,DDRB: data direction register B
+9f03,9f03,40707,40707,1,0.0,VIA,VIA_DDRA,DDRA: data direction register A
+9f04,9f04,40708,40708,1,0.0,VIA,VIA_T1CL,T1C-L: timer 1 low-order counter/latches
+9f05,9f05,40709,40709,1,0.0,VIA,VIA_T1CH,T1C-H: timer 1 high-order counter
+9f06,9f06,40710,40710,1,0.0,VIA,,T1L-L: timer 1 low-order latches
+9f07,9f07,40711,40711,1,0.0,VIA,,T1L-H: timer 1 high-order latches
+9f08,9f08,40712,40712,1,0.0,VIA,,T2C-L: timer 2 low-order counter/latches
+9f09,9f09,40713,40713,1,0.0,VIA,,T2C-H: timer 2 high-order counter
+9f0a,9f0a,40714,40714,1,0.0,VIA,VIA_SR,SR: shift register
+9f0b,9f0b,40715,40715,1,0.0,VIA,VIA_ACR,ACR: auxiliary control register
+9f0c,9f0c,40716,40716,1,0.0,VIA,VIA_PCR,PCR: peripheral control register
+9f0d,9f0d,40717,40717,1,0.0,VIA,VIA_IFR,IFR: interrupt flag register
+9f0e,9f0e,40718,40718,1,0.0,VIA,VIA_IER,IER: interrupt enable register
+9f0f,9f0f,40719,40719,1,0.0,VIA,,IRA/ORA with no handshake
+9f10,9fff,40720,40959,240,0.2,VIA,,(repeated mappings of VIA registers)
+,,,,,,,,
+,,,,,,,,“hardware” and shared RAM in Propeller – full detail
+a000,a7ff,40960,43007,2048,2.0,VID (cody_line.spin),,"shared RAM, selectable character RAM region 0"
+a000,a3ff,40960,41983,1024,1.0,VID (cody_line.spin),,"shared RAM, selectable screen/color RAM region 0"
+a400,a7ff,41984,43007,1024,1.0,VID (cody_line.spin),,"shared RAM, selectable screen/color RAM region 1"
+a800,afff,43008,45055,2048,2.0,VID (cody_line.spin),,"shared RAM, selectable character RAM region 1"
+a800,abff,43008,44031,1024,1.0,VID (cody_line.spin),,"shared RAM, selectable screen/color RAM region 2"
+ac00,afff,44032,45055,1024,1.0,VID (cody_line.spin),,"shared RAM, selectable screen/color RAM region 3"
+b000,b7ff,45056,47103,2048,2.0,VID (cody_line.spin),,"shared RAM, selectable character RAM region 2"
+b000,b3ff,45056,46079,1024,1.0,VID (cody_line.spin),,"shared RAM, selectable screen/color RAM region 4"
+b400,b7ff,46080,47103,1024,1.0,VID (cody_line.spin),,"shared RAM, selectable screen/color RAM region 5"
+b800,bfff,47104,49151,2048,2.0,VID (cody_line.spin),,"shared RAM, selectable character RAM region 3"
+b800,bbff,47104,48127,1024,1.0,VID (cody_line.spin),,"shared RAM, selectable screen/color RAM region 6"
+bc00,bfff,48128,49151,1024,1.0,VID (cody_line.spin),,"shared RAM, selectable screen/color RAM region 7"
+c000,c7ff,49152,51199,2048,2.0,VID (cody_line.spin),,"shared RAM, selectable character RAM region 4 (overlaps with default screen RAM)"
+c000,c3ff,49152,50175,1024,1.0,VID (cody_line.spin),,"shared RAM, selectable screen/color RAM region 8"
+c400,c7ff,50176,51199,1024,1.0,VID (cody_line.spin),SCRRAM,"shared RAM, selectable screen/color RAM region 9 (default screen RAM)"
+c800,cfff,51200,53247,2048,2.0,VID (cody_line.spin),CHAR_BASE,"shared RAM, selectable character RAM region 5 (default character RAM)"
+c800,cbff,51200,52223,1024,1.0,VID (cody_line.spin),,"shared RAM, selectable screen/color RAM region a (overlaps with default character RAM)"
+cc00,cfff,52224,53247,1024,1.0,VID (cody_line.spin),,"shared RAM, selectable screen/color RAM region b (overlaps with default character RAM)"
+d000,d7ff,53248,55295,2048,2.0,VID (cody_line.spin),,selectable character RAM region 6 (not usable – overlaps with VID/SID/UART registers)
+d000,d3ff,53248,54271,1024,1.0,VID (cody_line.spin),,selectable screen/color RAM region c (not usable – overlaps with VID registers)
+d000,d000,53248,53248,1,0.0,"VID (cody_line.spin, cody_video.spin)",VID_BLNK,blanking register
+d001,d001,53249,53249,1,0.0,"VID (cody_line.spin, cody_video.spin)",VID_CNTL,control register
+d002,d002,53250,53250,1,0.0,"VID (cody_line.spin, cody_video.spin)",VID_COLR,color register
+d003,d003,53251,53251,1,0.0,VID (cody_line.spin),VID_BPTR,base register
+d004,d004,53252,53252,1,0.0,VID (cody_line.spin),VID_SCRL,scroll register
+d005,d005,53253,53253,1,0.0,VID (cody_line.spin),VID_SCRC,screen colors register
+d006,d006,53254,53254,1,0.0,VID (cody_line.spin),VID_SPRC,sprite register
+d007,d03f,53255,53311,57,0.1,,,(unused register space/RAM)
+d040,d05f,53312,53343,32,0.0,VID (cody_line.spin),VID_RCTL,row effect control bank
+d060,d07f,53344,53375,32,0.0,VID (cody_line.spin),VID_RVAL,row effect data bank
+d080,d09f,53376,53407,32,0.0,VID (cody_line.spin),VID_SPRB,sprite bank 0
+d0a0,d0bf,53408,53439,32,0.0,VID (cody_line.spin),,sprite bank 1
+d0c0,d0df,53440,53471,32,0.0,VID (cody_line.spin),,sprite bank 2
+d0e0,d0ff,53472,53503,32,0.0,VID (cody_line.spin),,sprite bank 3
+d100,d3ff,53504,54271,768,0.8,,,(unused register space/RAM)
+d400,d7ff,54272,55295,1024,1.0,VID (cody_line.spin),,selectable screen/color RAM region d (not usable – overlaps with SID/UART registers)
+d400,d401,54272,54273,2,0.0,SID (cody_audio.spin),,voice 1 frequency value
+d402,d403,54274,54275,2,0.0,SID (cody_audio.spin),,voice 1 pulse duty cycle
+d404,d404,54276,54276,1,0.0,SID (cody_audio.spin),,voice 1 control register
+d405,d405,54277,54277,1,0.0,SID (cody_audio.spin),,voice 1 attack and decay register
+d406,d406,54278,54278,1,0.0,SID (cody_audio.spin),,voice 1 sustain and release register
+d407,d408,54279,54280,2,0.0,SID (cody_audio.spin),,voice 2 frequency value
+d409,d40a,54281,54282,2,0.0,SID (cody_audio.spin),,voice 2 pulse duty cycle
+d40b,d40b,54283,54283,1,0.0,SID (cody_audio.spin),,voice 2 control register
+d40c,d40c,54284,54284,1,0.0,SID (cody_audio.spin),,voice 2 attack and decay register
+d40d,d40d,54285,54285,1,0.0,SID (cody_audio.spin),,voice 2 sustain and release register
+d40e,d40f,54286,54287,2,0.0,SID (cody_audio.spin),,voice 3 frequency value
+d410,d411,54288,54289,2,0.0,SID (cody_audio.spin),,voice 3 pulse duty cycle
+d412,d412,54290,54290,1,0.0,SID (cody_audio.spin),,voice 3 control register
+d413,d413,54291,54291,1,0.0,SID (cody_audio.spin),,voice 3 attack and decay register
+d414,d414,54292,54292,1,0.0,SID (cody_audio.spin),,voice 3 sustain and release register
+d415,d417,54293,54295,3,0.0,SID (cody_audio.spin),,reserved
+d418,d418,54296,54296,1,0.0,SID (cody_audio.spin),,volume control
+d419,d41a,54297,54298,2,0.0,SID (cody_audio.spin),,reserved
+d41b,d41b,54299,54299,1,0.0,SID (cody_audio.spin),,voice 3 oscillator (read-only)
+d41c,d41c,54300,54300,1,0.0,SID (cody_audio.spin),,voice 3 envelope (read-only)
+d41d,d47f,54301,54399,99,0.1,,,(unused register space/RAM)
+d480,d480,54400,54400,1,0.0,UART 1 (cody_uart.spin),UART_CNTL,control register
+d481,d481,54401,54401,1,0.0,UART 1 (cody_uart.spin),UART_CMND,command register
+d482,d482,54402,54402,1,0.0,UART 1 (cody_uart.spin),UART_STAT,status register
+d483,d483,54403,54403,1,0.0,UART 1 (cody_uart.spin),,reserved
+d484,d484,54404,54404,1,0.0,UART 1 (cody_uart.spin),UART_RXHD,receive ring buffer head register
+d485,d485,54405,54405,1,0.0,UART 1 (cody_uart.spin),UART_RXTL,receive ring buffer tail register
+d486,d486,54406,54406,1,0.0,UART 1 (cody_uart.spin),UART_TXHD,transmit ring buffer head register
+d487,d487,54407,54407,1,0.0,UART 1 (cody_uart.spin),UART_TXTL,transmit ring buffer tail register
+d488,d48f,54408,54415,8,0.0,UART 1 (cody_uart.spin),UART_RXBF,receive ring buffer
+d490,d497,54416,54423,8,0.0,UART 1 (cody_uart.spin),UART_TXBF,transmit ring buffer
+d498,d49f,54424,54431,8,0.0,,,(unused register space/RAM)
+d4a0,d4a0,54432,54432,1,0.0,UART 2 (cody_uart.spin),UART_CNTL,control register
+d4a1,d4a1,54433,54433,1,0.0,UART 2 (cody_uart.spin),UART_CMND,command register
+d4a2,d4a2,54434,54434,1,0.0,UART 2 (cody_uart.spin),UART_STAT,status register
+d4a3,d4a3,54435,54435,1,0.0,UART 2 (cody_uart.spin),,reserved
+d4a4,d4a4,54436,54436,1,0.0,UART 2 (cody_uart.spin),UART_RXHD,receive ring buffer head register
+d4a5,d4a5,54437,54437,1,0.0,UART 2 (cody_uart.spin),UART_RXTL,receive ring buffer tail register
+d4a6,d4a6,54438,54438,1,0.0,UART 2 (cody_uart.spin),UART_TXHD,transmit ring buffer head register
+d4a7,d4a7,54439,54439,1,0.0,UART 2 (cody_uart.spin),UART_TXTL,transmit ring buffer tail register
+d4a8,d4af,54440,54447,8,0.0,UART 2 (cody_uart.spin),UART_RXBF,receive ring buffer
+d4b0,d4b7,54448,54455,8,0.0,UART 2 (cody_uart.spin),UART_TXBF,transmit ring buffer
+d4b8,d7ff,54456,55295,840,0.8,,,(unused register space/RAM)
+d800,dfff,55296,57343,2048,2.0,VID (cody_line.spin),,"shared RAM, selectable character RAM region 7 (overlaps with default color RAM)"
+d800,dbff,55296,56319,1024,1.0,VID (cody_line.spin),COLRAM,"shared RAM, selectable screen/color RAM region e (default color RAM)"
+dc00,dfff,56320,57343,1024,1.0,VID (cody_line.spin),,"shared RAM, selectable screen/color RAM region f"
+,,,,,,,,
+,,,,,,,,BASIC “ROM” in Propeller – full detail
+e000,e7ff,57344,59391,2048,2.0,ROM,CHRSET,default character ROM (copied to RAM by BASIC boot code)
+e800,fff9,59392,65529,6138,6.0,ROM,,BASIC ROM machine code
+fffa,fffb,65530,65531,2,0.0,65C02,,non-maskable interrupt vector (ROM: not defined – Cody does not use NMI)
+fffc,fffd,65532,65533,2,0.0,65C02,,reset vector (ROM: points to BASIC boot code)
+fffe,ffff,65534,65535,2,0.0,65C02,,interrupt/break vector (ROM: redirects to ISRPTR at $0008)
