@@ -6,3 +6,7 @@ all: \
 
 %.bin: %.asm
 	64tass --mw65c02 --nostart -o $@ $<
+
+.PHONY: clean
+clean:
+	$(RM) *.bin
