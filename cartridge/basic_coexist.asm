@@ -1,0 +1,73 @@
+; Copyright (C) 2025 dgelessus
+; 
+; This program is free software: you can redistribute it and/or modify
+; it under the terms of the GNU General Public License as published by
+; the Free Software Foundation, either version 3 of the License, or
+; (at your option) any later version.
+; 
+; This program is distributed in the hope that it will be useful,
+; but WITHOUT ANY WARRANTY; without even the implied warranty of
+; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+; GNU General Public License for more details.
+; 
+; You should have received a copy of the GNU General Public License
+; along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+screen_ram = $c400 ; Default base address of screen memory
+
+; Zero page variables
+* = 0
+
+; BASIC program memory goes from $0200 up to $6500
+; and is used roughly from the bottom up
+; depending on the size of the currently loaded BASIC code.
+; Thus, it's usually safe to put custom code/data here,
+; as long as the BASIC program is not so large that it needs the entire program memory.
+LOAD_POSITION = $6300
+PERSISTENT_CODE_POSITION = $6400 ; decimal 25600
+PERSISTENT_CODE_MAX = $6600
+
+; Program header for Cody BASIC's loader (needs to be first).
+* = 0
+.word LOAD_POSITION ; Starting address
+.word (LOAD_END - 1) ; Ending address
+
+; Cody BASIC's loader will put the data at LOAD_POSITION.
+.logical LOAD_POSITION
+	ldx #0
+_print_loop:
+	lda BOOT_MESSAGE, x
+	beq _print_done
+	sta screen_ram, x
+	inc x
+	bra _print_loop
+_print_done:
+	
+	lda #10
+	ldx #0
+	ldy #0
+_idle_loop:
+	inc y
+	bne _idle_loop
+	inc x
+	bne _idle_loop
+	dec a
+	bne _idle_loop
+	
+	rts
+
+BOOT_MESSAGE: .text format("Persistent code loaded. Call SYS(%d)", test_call)
+
+.cerror * > PERSISTENT_CODE_POSITION, format("Boot code too long: %#04x > %04x", *, PERSISTENT_CODE_POSITION)
+* = PERSISTENT_CODE_POSITION
+
+test_call:
+	lda #12
+	ldx #34
+	ldy #56
+	rts
+
+.cerror * > PERSISTENT_CODE_MAX, format("Persistent code too long: %04x > %04x", *, PERSISTENT_CODE_MAX)
+
+LOAD_END:
+.endlogical
