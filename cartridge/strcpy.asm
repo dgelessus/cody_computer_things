@@ -13,6 +13,9 @@
 ; You should have received a copy of the GNU General Public License
 ; along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+; Simple cartridge/assembly test program
+; that copies a couple of strings to the screen and then stops.
+
 screen_ram = $c400 ; Default base address of screen memory
 
 ; Zero page variables

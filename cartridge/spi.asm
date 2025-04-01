@@ -13,6 +13,9 @@
 ; You should have received a copy of the GNU General Public License
 ; along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+; Some SPI functions that can be called from BASIC.
+; Very unfinished - currently only has one function that checks whether a cartridge is present.
+
 ; VIA registers
 via_iora = $9f01 ; IO register A
 via_pcr = $9f0c ; Peripheral control register
@@ -48,6 +51,7 @@ _print_loop:
 	bra _print_loop
 _print_done:
 	
+	; TODO Replace this with a robust loop based on the zero page variable JIFFIES
 	lda #10
 	ldx #0
 	ldy #0

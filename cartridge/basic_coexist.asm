@@ -13,6 +13,19 @@
 ; You should have received a copy of the GNU General Public License
 ; along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+; Simple test for cartridge-based code that can coexist with Cody BASIC.
+; The code that will be loaded into memory consists of two parts.
+; The first part is run by the loader at boot,
+; but only displays a message and then returns to BASIC.
+; The second part is not run at boot,
+; but left in memory at a known fixed address
+; so that it can be called from BASIC using SYS.
+
+; This is similar to the resident.asm example from the official cody-computer repo.
+; (In fact,
+; this test program was originally a hacky proof of concept
+; written before the Cody ROM officially supported cartridges returning to BASIC.)
+
 screen_ram = $c400 ; Default base address of screen memory
 
 ; Zero page variables
@@ -43,6 +56,7 @@ _print_loop:
 	bra _print_loop
 _print_done:
 	
+	; TODO Replace this with a robust loop based on the zero page variable JIFFIES
 	lda #10
 	ldx #0
 	ldy #0

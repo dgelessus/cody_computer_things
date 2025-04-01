@@ -13,6 +13,11 @@
 ; You should have received a copy of the GNU General Public License
 ; along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+; Proof of concept bootable Cody cartridge
+; that is also a valid (empty) FAT12 file system.
+; The code does nothing interesting yet,
+; but I'm sure you can guess what I want to do with this eventually.
+
 ; Loading address for the boot code.
 ; HACK: Make sure that the first byte of the address is $e9
 ; so that it looks like a PC/x86 jump instruction.
