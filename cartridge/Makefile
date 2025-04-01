@@ -1,6 +1,7 @@
 # User-customizable variables:
 64TASS ?= 64tass
 64TASS_FLAGS ?=
+BUILD_DIR ?= build
 
 # Internal variables - normally shouldn't be overridden:
 DEFAULT_64TASS_FLAGS = \
@@ -28,9 +29,12 @@ all: \
     spi.bin \
     strcpy.bin
 
-%.bin: %.asm
-	$(64TASS) $(ALL_64TASS_FLAGS) --mw65c02 --nostart -o $@ $<
+$(BUILD_DIR):
+	mkdir -p $@
+
+%.bin: %.asm $(BUILD_DIR)
+	$(64TASS) $(ALL_64TASS_FLAGS) --mw65c02 --nostart -o $(BUILD_DIR)/$@ $<
 
 .PHONY: clean
 clean:
-	$(RM) *.bin
+	$(RM) -r $(BUILD_DIR)
