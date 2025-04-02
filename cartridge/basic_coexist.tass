@@ -70,7 +70,7 @@ _idle_loop:
 	
 	rts
 
-BOOT_MESSAGE: .text format("Persistent code loaded. Call SYS(%d)", test_call)
+BOOT_MESSAGE: .text format("Persistent code loaded. Call SYS %d", test_call)
 
 .cerror * > PERSISTENT_CODE_POSITION, format("Boot code too long: %#04x > %04x", *, PERSISTENT_CODE_POSITION)
 * = PERSISTENT_CODE_POSITION
