@@ -32,7 +32,7 @@ all: \
 $(BUILD_DIR):
 	mkdir -p $@
 
-%.bin: %.asm $(BUILD_DIR)
+%.bin: %.tass $(BUILD_DIR)
 	$(64TASS) $(ALL_64TASS_FLAGS) --mw65c02 --nostart -o $(BUILD_DIR)/$@ $<
 
 .PHONY: clean
