@@ -65,10 +65,35 @@ _idle_loop:
 	
 	rts
 
-BOOT_MESSAGE: .text format("SPI call loaded. Call SYS %d", is_cartridge_present)
+BOOT_MESSAGE: .text format("SPI calls loaded. Call SYS %d etc.", is_cartridge_present)
 
 .cerror * > PERSISTENT_CODE_POSITION, format("Boot code too long: %#04x > %04x", *, PERSISTENT_CODE_POSITION)
 * = PERSISTENT_CODE_POSITION
+
+; Jump table header.
+; Callers could use this for simple feature detection at runtime
+; to check whether an entry actually exists before trying to use it.
+JUMP_TABLE_HEADER:
+	; First byte is rts so that nothing terrible happens if someone incorrectly tries to call the header.
+	; This should also be considered a magic number/signature:
+	; if the first byte is *not* rts,
+	; then the header or the jump table doesn't have the format documented here.
+	rts
+	; Second byte is currently 0 and should be ignored for now.
+	; It might be used in the future for extra metadata that is backwards-compatible
+	; (i. e. that can be safely ignored by callers that don't expect or need it).
+	.byte 0
+	; Third byte is the number of jump table entries after this header.
+	; This is a number of *entries*, not a number of bytes!
+	.cerror (JUMP_TABLE_END - JUMP_TABLE) % 3 != 0, format("Jump table size must be a multiple of 3 bytes: %d %% 3 == %d", JUMP_TABLE_END - JUMP_TABLE, (JUMP_TABLE_END - JUMP_TABLE) % 3)
+	.byte (JUMP_TABLE_END - JUMP_TABLE) / 3
+	.cerror JUMP_TABLE - JUMP_TABLE_HEADER != 3, format("Jump table header must be exactly 3 bytes long, not %d bytes", JUMP_TABLE - JUMP_TABLE_HEADER)
+
+; The actual jump table.
+; A simple sequence of 3-byte entries.
+JUMP_TABLE:
+	jmp is_cartridge_present
+JUMP_TABLE_END:
 
 ; Check whether the cartridge detect pins are connected or not.
 ; Loosely based on CARTCHECK from codybasic.asm.
