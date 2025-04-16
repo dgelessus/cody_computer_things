@@ -1,0 +1,3 @@
+1 REM SPDX-License-Identifier: 0BSD
+10 PRINT CHR$(144 + AND(RND(), 1));
+20 GOTO 10
