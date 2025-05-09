@@ -17,7 +17,10 @@
 ; Very unfinished - currently only has one function that checks whether a cartridge is present.
 
 ; VIA registers
+via_iorb = $9f00 ; IO register B
 via_iora = $9f01 ; IO register A
+via_ddrb = $9f02 ; Data direction register B
+via_acr = $9f0b ; Auxiliary control register
 via_pcr = $9f0c ; Peripheral control register
 via_ifr = $9f0d ; Interrupt flag register
 
@@ -93,6 +96,8 @@ JUMP_TABLE_HEADER:
 ; A simple sequence of 3-byte entries.
 JUMP_TABLE:
 	jmp is_cartridge_present
+	jmp set_up_expansion_port_for_cartridge
+	jmp read_eeprom_address_size
 JUMP_TABLE_END:
 
 ; Check whether the cartridge detect pins are connected or not.
@@ -144,6 +149,40 @@ is_cartridge_present:
 	; Check whether the CA1 interrupt flag was set.
 	and #%0_00_00_0_10
 	
+	rts
+
+; Configure the VIA's port B
+; (which is connected to the Cody Computer's expansion port)
+; for communication with an SPI EEPROM on the cartridge.
+; a: clobbered
+; via_ddrb: configured/clobbered
+set_up_expansion_port_for_cartridge:
+	; Disable latching for IO port B.
+	; Modify ACR:
+	; T1, T2, SR: no change
+	; PB: disable latching
+	; PA: no change
+	lda via_acr
+	and #%11_1_111_0_1
+	sta via_acr
+	
+	; Set input/output modes for port B:
+	; PB0 (serial clock): output
+	; PB1 (chip serial data in): output
+	; PB2 (chip serial data out): input
+	; PB3 (negated chip select): output
+	; PB4 (address size): input
+	; PB5-PB7 (unused): don't care
+	lda #%000_01011
+	sta via_ddrb
+	
+	rts
+
+; z flag: matches a
+; a: will be 0 iff addresses are 16-bit, not 0 iff addresses are 24-bit
+read_eeprom_address_size:
+	lda via_iorb
+	and #%10000
 	rts
 
 .cerror * > PERSISTENT_CODE_MAX, format("Persistent code too long: %04x > %04x", *, PERSISTENT_CODE_MAX)
