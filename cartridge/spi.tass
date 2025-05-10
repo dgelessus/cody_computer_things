@@ -65,7 +65,7 @@ _idle_loop:
 	
 	rts
 
-BOOT_MESSAGE: .text format("SPI calls loaded. Call SYS %d etc.", is_cartridge_present)
+BOOT_MESSAGE: .text format("SPI calls loaded. Call SYS %d etc.", JUMP_TABLE)
 
 .cerror * > PERSISTENT_CODE_POSITION, format("Boot code too long: %#04x > %04x", *, PERSISTENT_CODE_POSITION)
 * = PERSISTENT_CODE_POSITION
