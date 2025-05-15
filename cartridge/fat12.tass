@@ -35,14 +35,13 @@ INIT_SECTORS_PER_FAT = 1 ; idk, just guessing
 INIT_VOLUME_ID = $00000000 ; 32-bit value, supposed to be unique for each volume, but we can't do that well in assembly...
 INIT_VOLUME_LABEL = "CODYFS BOOT" ; 11 bytes
 
-; Program header for Cody Basic's loader (needs to be first).
+; Program header for Cody BASIC's loader (needs to be first).
+* = 0
 .word LOAD_POSITION ; Starting address
-.word (LOAD_POSITION + LAST - START - 1) ; Ending address
+.word (LOAD_END - 1) ; Ending address
 
 ; Cody Basic's loader will put the data at LOAD_POSITION.
 .logical LOAD_POSITION
-
-START:
 	; Jump over the boot sector header and BPB.
 	jmp BOOT
 
@@ -121,7 +120,7 @@ TEXT:
 	.null "Cody!" ; TEXT as a null-terminated string
 
 ; End of the boot code that must be loaded by the Cody Basic loader.
-LAST:
+LOAD_END:
 .endlogical
 ; Everything below here is further file system stuff that doesn't need to be initially loaded.
 
