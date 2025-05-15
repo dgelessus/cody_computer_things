@@ -20,6 +20,7 @@ DEFAULT_64TASS_FLAGS = \
     -Wshadow \
     -Wstrict-bool \
     -Wunused \
+    -Wno-unused-const \
     --quiet
 ALL_64TASS_FLAGS = $(DEFAULT_64TASS_FLAGS) $(64TASS_FLAGS)
 

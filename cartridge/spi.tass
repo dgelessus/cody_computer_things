@@ -23,6 +23,68 @@ via_ddrb = $9f02 ; Data direction register B
 via_acr = $9f0b ; Auxiliary control register
 via_pcr = $9f0c ; Peripheral control register
 via_ifr = $9f0d ; Interrupt flag register
+via_ier = $9f0e ; Interrupt enable register
+
+; via_acr latch flags
+VIA_ACR_PA_LATCH = %1 << 0
+VIA_ACR_PB_LATCH = %1 << 1
+
+; via_acr shift register control flags
+VIA_ACR_SR_OFF = %000 << 2
+VIA_ACR_SR_IN_T2 = %001 << 2
+VIA_ACR_SR_IN_PHI2 = %010 << 2
+VIA_ACR_SR_IN_CB1 = %011 << 2
+VIA_ACR_SR_OUT_T2_FREE_RUNNING = %100 << 2
+VIA_ACR_SR_OUT_T2 = %101 << 2
+VIA_ACR_SR_OUT_PHI2 = %110 << 2
+VIA_ACR_SR_OUT_CB1 = %111 << 2
+
+; via_acr T2 control flags
+VIA_ACR_T2_ONE_SHOT = %0 << 5
+VIA_ACR_T2_COUNT_DOWN_ON_PB6 = %1 << 5
+
+; via_acr T1 control flags
+VIA_ACR_T1_OUTPUT_ON_PB7 = %1 << 6
+VIA_ACR_T1_ONE_SHOT = %0 << 7
+VIA_ACR_T1_CONTINUOUS = %1 << 7
+
+; via_pcr flag shifts for CA and CB
+VIA_PCR_CA_SHIFT = 0 ; CA1/CA2
+VIA_PCR_CB_SHIFT = 4 ; CB1/CB2
+
+; via_pcr flags, must be shifted by above constants
+VIA_PCR_C1_IN_NEGATIVE_ACTIVE_EDGE = %0 << 0
+VIA_PCR_C1_IN_POSITIVE_ACTIVE_EDGE = %1 << 0
+VIA_PCR_C2_IN_NEGATIVE_ACTIVE_EDGE = %000 << 1
+VIA_PCR_C2_IN_INDEPENDENT_NEGATIVE_ACTIVE_EDGE = %001 << 1
+VIA_PCR_C2_IN_POSITIVE_ACTIVE_EDGE = %010 << 1
+VIA_PCR_C2_IN_INDEPENDENT_POSITIVE_ACTIVE_EDGE = %011 << 1
+VIA_PCR_C2_OUT_HANDSHAKE = %100 << 1
+VIA_PCR_C2_OUT_PULSE = %101 << 1
+VIA_PCR_C2_OUT_LOW = %110 << 1
+VIA_PCR_C2_OUT_HIGH = %111 << 1
+
+; via_ifr/via_ier flags
+VIA_IR_CA2 = %1 << 0
+VIA_IR_CA1 = %1 << 1
+VIA_IR_SR = %1 << 2
+VIA_IR_CB2 = %1 << 3
+VIA_IR_CB1 = %1 << 4
+VIA_IR_T2 = %1 << 5
+VIA_IR_T1 = %1 << 6
+VIA_IFR_IRQ = %1 << 7
+VIA_IER_CLEAR = %0 << 7
+VIA_IER_SET = %1 << 7
+
+; SPI IO lines connected to VIA port B
+PB_OUT_CLOCK = %1 << 0 ; PB0: serial clock (output)
+PB_OUT_CHIP_IN = %1 << 1 ; PB1: chip serial data in (output)
+PB_IN_CHIP_OUT = %1 << 2 ; PB2: chip serial data out (input)
+PB_OUT_NOT_CHIP_SELECT = %1 << 3 ; PB3: negated chip select (output)
+PB_IN_ADDRESS_SIZE = %1 << 4 ; PB4: address size (input)
+; PB5-PB7: unused on standard Cody cartridge
+PB_IN_ALL = PB_IN_ADDRESS_SIZE | PB_IN_CHIP_OUT
+PB_OUT_ALL = PB_OUT_NOT_CHIP_SELECT | PB_OUT_CHIP_IN | PB_OUT_CLOCK
 
 screen_ram = $c400 ; Default base address of screen memory
 
@@ -121,22 +183,18 @@ is_cartridge_present:
 	; If the cartridge does not wish to be detected or is not present,
 	; setting CA2 high has no effect and CA1 will remain low.
 	
-	; Set PCR to:
-	; CB2, CB1: don't care
-	; CA2: low output
-	; CA1: positive active edge interrupt
-	lda #%000_0_110_1
+	; Set CA1 to positive active edge input
+	; and CA2 to low output.
+	; (Don't care about CB1/CB2 here.)
+	lda #((VIA_PCR_C2_OUT_LOW | VIA_PCR_C1_IN_POSITIVE_ACTIVE_EDGE) << VIA_PCR_CA_SHIFT)
 	sta via_pcr
 	
 	; Read IRA to clear the CA1 interrupt flag
 	; (and also CA2, though we don't care about that).
 	lda via_iora
 	
-	; Set PCR to:
-	; CB2, CB1: don't care
-	; CA2: high output
-	; CA1: positive active edge interrupt
-	lda #%000_0_111_1
+	; Pull CA2 output high.
+	lda #((VIA_PCR_C2_OUT_HIGH | VIA_PCR_C1_IN_POSITIVE_ACTIVE_EDGE) << VIA_PCR_CA_SHIFT)
 	sta via_pcr
 	
 	; Read interrupt flags (CA1 flag needed later).
@@ -150,7 +208,7 @@ is_cartridge_present:
 	stx via_pcr
 	
 	; Check whether the CA1 interrupt flag was set.
-	and #%0_00_00_0_10
+	and #VIA_IR_CA1
 	
 	rts
 
@@ -161,22 +219,12 @@ is_cartridge_present:
 ; via_ddrb: configured/clobbered
 set_up_expansion_port_for_cartridge:
 	; Disable latching for IO port B.
-	; Modify ACR:
-	; T1, T2, SR: no change
-	; PB: disable latching
-	; PA: no change
 	lda via_acr
-	and #%11_1_111_0_1
+	and #($ff & ~VIA_ACR_PB_LATCH)
 	sta via_acr
 	
-	; Set input/output modes for port B:
-	; PB0 (serial clock): output
-	; PB1 (chip serial data in): output
-	; PB2 (chip serial data out): input
-	; PB3 (negated chip select): output
-	; PB4 (address size): input
-	; PB5-PB7 (unused): don't care
-	lda #%000_01011
+	; Set input/output modes for port B.
+	lda #PB_OUT_ALL
 	sta via_ddrb
 	
 	; Intentionally continue into end_spi_transaction
@@ -186,10 +234,10 @@ set_up_expansion_port_for_cartridge:
 ; Safe to call regardless of the current state of chip select.
 ; a: clobbered
 end_spi_transaction:
-	; PB0 (serial clock): low (don't really care, but is appropriate for start of next SPI transaction)
-	; PB1 (chip serial data in): don't care
-	; PB3 (negated chip select): high (off)
-	lda #%1000
+	; Clock: low (don't really care, but is appropriate for start of next SPI transaction)
+	; Chip data in: don't care
+	; Negated chip select: high (off)
+	lda #PB_OUT_NOT_CHIP_SELECT
 	sta via_iorb
 	
 	rts
@@ -198,7 +246,7 @@ end_spi_transaction:
 ; a: will be 0 iff addresses are 16-bit, not 0 iff addresses are 24-bit
 read_eeprom_address_size:
 	lda via_iorb
-	and #%10000
+	and #PB_IN_ADDRESS_SIZE
 	rts
 
 ; Send a byte to the SPI device.
@@ -219,21 +267,21 @@ _loop:
 	tax
 	
 	; Prepare outputs:
-	; PB0 (serial clock): low
-	; PB1 (chip serial data in): bit to send
-	; PB3 (negated chip select): low (on)
+	; Clock: low
+	; Chip data in: bit to send
+	; Negated chip select: low (on)
 	bcs _prepare_send_1
-	lda #%000
+	lda #0
 	bra _prepared_send
 _prepare_send_1:
-	lda #%010
+	lda #PB_OUT_CHIP_IN
 _prepared_send:
 	
 	; Set outputs.
 	sta via_iorb
 	
 	; Pull clock high.
-	ora #%001
+	ora #PB_OUT_CLOCK
 	sta via_iorb
 	
 	; Retrieve remaining bits to send,
@@ -264,17 +312,17 @@ _loop:
 	tax
 	
 	; Prepare outputs:
-	; PB0 (serial clock): low
-	; PB1 (chip serial data in): don't care
-	; PB3 (negated chip select): low (on)
+	; Clock: low
+	; Chip data in: don't care
+	; Negated chip select: low (on)
 	stz via_iorb
 	
 	; Pull clock high.
-	lda #%001
+	lda #PB_OUT_CLOCK
 	sta via_iorb
 	
-	; Read PB2 (chip serial data out).
-	lda #%00100
+	; Read chip data out.
+	lda #PB_IN_CHIP_OUT
 	bit via_iorb
 	bne _received_1
 	
