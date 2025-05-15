@@ -98,6 +98,9 @@ JUMP_TABLE:
 	jmp is_cartridge_present
 	jmp set_up_expansion_port_for_cartridge
 	jmp read_eeprom_address_size
+	jmp end_spi_transaction
+	jmp send_spi_byte
+	jmp receive_spi_byte
 JUMP_TABLE_END:
 
 ; Check whether the cartridge detect pins are connected or not.
@@ -176,6 +179,19 @@ set_up_expansion_port_for_cartridge:
 	lda #%000_01011
 	sta via_ddrb
 	
+	; Intentionally continue into end_spi_transaction
+	; to set all outputs to a known initial state.
+
+; End any active SPI transaction by turning chip select off.
+; Safe to call regardless of the current state of chip select.
+; a: clobbered
+end_spi_transaction:
+	; PB0 (serial clock): low (don't really care, but is appropriate for start of next SPI transaction)
+	; PB1 (chip serial data in): don't care
+	; PB3 (negated chip select): high (off)
+	lda #%1000
+	sta via_iorb
+	
 	rts
 
 ; z flag: matches a
@@ -183,6 +199,101 @@ set_up_expansion_port_for_cartridge:
 read_eeprom_address_size:
 	lda via_iorb
 	and #%10000
+	rts
+
+; Send a byte to the SPI device.
+; This also starts an SPI transaction if one isn't already in progress,
+; i. e. ensures that chip select is on.
+; a: byte to send (clobbered)
+; x: clobbered
+; y: clobbered
+send_spi_byte:
+	; Initialize loop counter.
+	ldy #8
+	
+_loop:
+	; Shift next bit to send from a into c flag.
+	rol a
+	; Save remaining bits into x,
+	; because a will be clobbered in the next steps.
+	tax
+	
+	; Prepare outputs:
+	; PB0 (serial clock): low
+	; PB1 (chip serial data in): bit to send
+	; PB3 (negated chip select): low (on)
+	bcs _prepare_send_1
+	lda #%000
+	bra _prepared_send
+_prepare_send_1:
+	lda #%010
+_prepared_send:
+	
+	; Set outputs.
+	sta via_iorb
+	
+	; Pull clock high.
+	ora #%001
+	sta via_iorb
+	
+	; Retrieve remaining bits to send,
+	; previously saved in x.
+	txa
+	
+	; Loop until counter reaches 0.
+	dec y
+	bne _loop
+	
+	rts
+
+; Receive a byte from the SPI device.
+; This also starts an SPI transaction if one isn't already in progress,
+; i. e. ensures that chip select is on.
+; a: will contain the received byte
+; x: clobbered
+; y: clobbered
+receive_spi_byte:
+	; Initialize output byte.
+	lda #0
+	; Initialize loop counter.
+	ldy #8
+	
+_loop:
+	; Save already read bits into x,
+	; because a will be clobbered in the next steps.
+	tax
+	
+	; Prepare outputs:
+	; PB0 (serial clock): low
+	; PB1 (chip serial data in): don't care
+	; PB3 (negated chip select): low (on)
+	stz via_iorb
+	
+	; Pull clock high.
+	lda #%001
+	sta via_iorb
+	
+	; Read PB2 (chip serial data out).
+	lda #%00100
+	bit via_iorb
+	bne _received_1
+	
+	; Received a 0 bit.
+	txa
+	clc
+	bra _received_done
+_received_1:
+	; Received a 1 bit.
+	txa
+	sec
+_received_done:
+	; Shift received bit from c flag into a.
+	rol a
+	
+	; Loop until counter reaches 0.
+	dec y
+	bne _loop
+	
 	rts
 
 .cerror * > PERSISTENT_CODE_MAX, format("Persistent code too long: %04x > %04x", *, PERSISTENT_CODE_MAX)
