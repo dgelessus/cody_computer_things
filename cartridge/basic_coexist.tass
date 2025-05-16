@@ -28,8 +28,21 @@
 
 screen_ram = $c400 ; Default base address of screen memory
 
-; Zero page variables
-* = 0
+; Cody ROM/BASIC zero page variables
+* = $00
+; These three variables are always overwritten by Cody BASIC after a SYS call returns,
+; so it's safe to use them as temporary variables inside a SYS call.
+.byte ? ; temp_a
+temp_x: .byte ?
+temp_y: .byte ?
+* = $06
+jiffies: .word ?
+
+; Display duration for the boot message,
+; in jiffies (1/60ths of a second).
+; Some digital displays take around 2 seconds to sync to the Cody Computer's analog video signal,
+; so this still leaves around 2 seconds to read the message.
+BOOT_MESSAGE_DISPLAY_TIME = 4*60
 
 ; BASIC program memory goes from $0200 up to $6500
 ; and is used roughly from the bottom up
@@ -56,18 +69,32 @@ _print_loop:
 	bra _print_loop
 _print_done:
 	
-	; TODO Replace this with a robust loop based on the zero page variable JIFFIES
-	lda #10
-	ldx #0
-	ldy #0
-_idle_loop:
-	inc y
-	bne _idle_loop
-	inc x
-	bne _idle_loop
-	dec a
-	bne _idle_loop
+	; Store the current timer value.
+	lda jiffies
+	sta temp_x
+	lda jiffies+1
+	sta temp_y
 	
+	; Ensure that interrupts are enabled
+	; so that the jiffies variable gets updated by the Cody ROM/BASIC ISR.
+	cli
+	
+_idle_loop:
+	; Calculate how many jiffies have elapsed since the timer value was saved.
+	sec
+	lda jiffies
+	sbc temp_x
+	tax
+	lda jiffies+1
+	sbc temp_y
+	
+	; Continue looping as long as the elapsed time is less than the desired display time.
+	cmp #>BOOT_MESSAGE_DISPLAY_TIME
+	bcc _idle_loop
+	cpx #<BOOT_MESSAGE_DISPLAY_TIME
+	bcc _idle_loop
+	
+	sei
 	rts
 
 BOOT_MESSAGE: .text format("Persistent code loaded. Call SYS %d", test_call)
