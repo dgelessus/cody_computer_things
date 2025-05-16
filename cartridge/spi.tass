@@ -86,6 +86,23 @@ PB_IN_ADDRESS_SIZE = %1 << 4 ; PB4: address size (input)
 PB_IN_ALL = PB_IN_ADDRESS_SIZE | PB_IN_CHIP_OUT
 PB_OUT_ALL = PB_OUT_NOT_CHIP_SELECT | PB_OUT_CHIP_IN | PB_OUT_CLOCK
 
+; SPI EEPROM commands
+EEPROM_CMD_READ = %0000_0011
+EEPROM_CMD_WRITE = %0000_0010
+EEPROM_CMD_WREN = %0000_0110
+EEPROM_CMD_WRDI = %0000_0100
+EEPROM_CMD_RDSR = %0000_0101
+EEPROM_CMD_WRSR = %0000_0001
+
+; SPI EEPROM status register bits
+EEPROM_SR_WRITE_IN_PROGRESS = %1 << 0
+EEPROM_SR_WRITE_ENABLE_LATCH = %1 << 1
+EEPROM_SR_PROTECT_NONE = %00 << 2
+EEPROM_SR_PROTECT_UPPER_QUARTER = %01 << 2
+EEPROM_SR_PROTECT_UPPER_HALF = %10 << 2
+EEPROM_SR_PROTECT_ALL = %11 << 2
+EEPROM_SR_WRITE_PROTECT_ENABLE = %1 << 7
+
 screen_ram = $c400 ; Default base address of screen memory
 
 ; Zero page variables
@@ -163,6 +180,8 @@ JUMP_TABLE:
 	jmp end_spi_transaction
 	jmp send_spi_byte
 	jmp receive_spi_byte
+	jmp read_eeprom_status_register
+	jmp write_eeprom_status_register
 JUMP_TABLE_END:
 
 ; Check whether the cartridge detect pins are connected or not.
@@ -215,6 +234,7 @@ is_cartridge_present:
 ; (which is connected to the Cody Computer's expansion port)
 ; for communication with an SPI EEPROM on the cartridge.
 ; a: clobbered
+; x: clobbered
 ; via_ddrb: configured/clobbered
 set_up_expansion_port_for_cartridge:
 	; Disable latching for IO port B.
@@ -230,13 +250,13 @@ set_up_expansion_port_for_cartridge:
 
 ; End any active SPI transaction by turning chip select off.
 ; Safe to call regardless of the current state of chip select.
-; a: clobbered
+; x: clobbered
 end_spi_transaction:
 	; Clock: low (don't really care, but is appropriate for start of next SPI transaction)
 	; Chip data in: don't care
 	; Negated chip select: high (off)
-	lda #PB_OUT_NOT_CHIP_SELECT
-	sta via_iorb
+	ldx #PB_OUT_NOT_CHIP_SELECT
+	stx via_iorb
 	
 	rts
 
@@ -339,6 +359,51 @@ _received_done:
 	; Loop until counter reaches 0.
 	dec y
 	bne _loop
+	
+	rts
+
+; Read the EEPROM status register (SR).
+; a: will contain the value of the status register
+; x: clobbered
+; y: clobbered
+read_eeprom_status_register:
+	; Send RDSR command.
+	lda #EEPROM_CMD_RDSR
+	jsr send_spi_byte
+	
+	; Receive status register byte.
+	jsr receive_spi_byte
+	
+	; End of RDSR command.
+	jsr end_spi_transaction
+	
+	rts
+
+; Write to the EEPROM status register (SR).
+; a: new status register value (clobbered)
+; x: clobbered
+; y: clobbered
+write_eeprom_status_register:
+	pha
+	
+	; Send WREN command.
+	lda #EEPROM_CMD_WREN
+	jsr send_spi_byte
+	
+	; End of WREN command.
+	jsr end_spi_transaction
+	
+	; Send WRSR command.
+	lda #EEPROM_CMD_WRSR
+	jsr send_spi_byte
+	
+	; Send status register byte.
+	pla
+	jsr send_spi_byte
+	
+	jsr end_spi_transaction
+	
+	; TODO Wait for the write to complete (poll SR until the WIP bit becomes 0)
 	
 	rts
 
