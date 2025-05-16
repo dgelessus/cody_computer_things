@@ -379,10 +379,38 @@ read_eeprom_status_register:
 	
 	rts
 
+; Wait for the EEPROM to finish its current write cycle.
+; a: clobbered
+; x: clobbered
+; y: how often the status register was read until the write finished (for debugging/information only - this value may be removed in the future)
+wait_for_write:
+	ldy #0
+	phy
+_loop:
+	; Count loop iterations until the write has finished.
+	; This is only useful for debugging/testing
+	; and could be removed in the future
+	; to squeeze out a tiny bit of extra performance.
+	; Shouldn't make a big difference though -
+	; with this implementation,
+	; waiting for a status register write
+	; takes 8 loop iterations.
+	ply
+	iny
+	phy
+	
+	; Wait for the "write in progress" bit to change to 0.
+	jsr read_eeprom_status_register
+	bit #EEPROM_SR_WRITE_IN_PROGRESS
+	bne _loop
+	
+	ply
+	rts
+
 ; Write to the EEPROM status register (SR).
 ; a: new status register value (clobbered)
 ; x: clobbered
-; y: clobbered
+; y: how often the status register was read until the write finished (for debugging/information only - this value may be removed in the future)
 write_eeprom_status_register:
 	pha
 	
@@ -403,7 +431,7 @@ write_eeprom_status_register:
 	
 	jsr end_spi_transaction
 	
-	; TODO Wait for the write to complete (poll SR until the WIP bit becomes 0)
+	jsr wait_for_write
 	
 	rts
 
