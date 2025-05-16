@@ -204,8 +204,7 @@ is_cartridge_present:
 	ldx via_iora
 	
 	; Reset PCR so CA2 stops outputting.
-	ldx #$00
-	stx via_pcr
+	stz via_pcr
 	
 	; Check whether the CA1 interrupt flag was set.
 	and #VIA_IR_CA1
@@ -219,9 +218,8 @@ is_cartridge_present:
 ; via_ddrb: configured/clobbered
 set_up_expansion_port_for_cartridge:
 	; Disable latching for IO port B.
-	lda via_acr
-	and #($ff & ~VIA_ACR_PB_LATCH)
-	sta via_acr
+	lda #VIA_ACR_PB_LATCH
+	trb via_acr
 	
 	; Set input/output modes for port B.
 	lda #PB_OUT_ALL
